@@ -10,16 +10,31 @@ app.use(bodyParser.json());
 var lions = [];
 var id = 0;
 
-app.get('/lions', function(req, res){
+// get an instance of the express Router
+var router = express.Router();              
+
+// middleware to use for all requests
+router.use(function(req, res, next) {
+    // do logging
+    console.log('Something is happening.');
+    next(); // make sure we go to the next routes and don't stop here
+});
+
+
+router.get('/', function(req, res) {
+    res.json({ message: 'Welcome to our api!' });   
+});
+
+router.get('/lions', function(req, res){
   res.json(lions);
 });
 
-app.get('/lions/:id', function(req, res){
+router.get('/lions/:id', function(req, res){
   var lion = _.find(lions, {id: req.params.id});
   res.json(lion || {});
 });
 
-app.post('/lions', function(req, res) {
+router.post('/lions', function(req, res) {
   var lion = req.body;
   id++;
   lion.id = id + '';
@@ -30,7 +45,7 @@ app.post('/lions', function(req, res) {
 });
 
 
-app.put('/lions/:id', function(req, res) {
+router.put('/lions/:id', function(req, res) {
   var update = req.body;
   if (update.id) {
     delete update.id
@@ -44,6 +59,16 @@ app.put('/lions/:id', function(req, res) {
     res.json(updatedLion);
   }
 });
+
+router.delete('/lions/:id', function(req, res){
+  var index = _.findIndex(lions, {id: req.params.id});
+  if(index > -1){
+    lions.splice(index,1);
+  }
+  res.json({message: 'Successfully deleted'});
+});
+
+app.use('/api', router);
 
 app.set('port', (process.env.PORT || 8080));
 
